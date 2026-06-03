@@ -8,6 +8,7 @@ const plantRoutes = require('./routes/plants');
 const inquiryRoutes = require('./routes/inquiries');
 const uploadRoutes = require('./routes/upload');
 const orderRoutes = require('./routes/orders');
+const { transporter } = require('./config/nodemailer');
 
 connectDB();
 
@@ -26,6 +27,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'New Gangwar Nursery API is running' });
+});
+
+app.get('/api/test-email', async (req, res) => {
+  try {
+    await transporter.verify();
+    res.json({ success: true, message: 'SMTP connection verified successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'SMTP connection failed', error: error.message });
+  }
 });
 
 app.use('/api/auth', authRoutes);
