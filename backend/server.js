@@ -8,7 +8,6 @@ const plantRoutes = require('./routes/plants');
 const inquiryRoutes = require('./routes/inquiries');
 const uploadRoutes = require('./routes/upload');
 const orderRoutes = require('./routes/orders');
-const { transporter } = require('./config/nodemailer');
 
 connectDB();
 
@@ -31,10 +30,18 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/test-email', async (req, res) => {
   try {
-    await transporter.verify();
-    res.json({ success: true, message: 'SMTP connection verified successfully' });
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      to: process.env.ADMIN_EMAIL,
+      from: process.env.EMAIL_USER,
+      subject: 'Test Email from New Gangwar Nursery',
+      html: '<h2>Test Email</h2><p>If you see this, SendGrid is working!</p>',
+    };
+    await sgMail.send(msg);
+    res.json({ success: true, message: 'Test email sent successfully!' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'SMTP connection failed', error: error.message });
+    res.status(500).json({ success: false, message: 'SendGrid failed', error: error.message });
   }
 });
 

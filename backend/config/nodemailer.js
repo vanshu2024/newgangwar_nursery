@@ -1,19 +1,13 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 const sendInquiryEmail = async ({ customerName, phone, email, address, plantName, quantity, message }) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  const msg = {
     to: process.env.ADMIN_EMAIL,
+    from: process.env.EMAIL_USER,
     subject: `New Plant Inquiry - ${plantName || 'General Inquiry'}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f0fdf4;">
@@ -43,7 +37,7 @@ const sendInquiryEmail = async ({ customerName, phone, email, address, plantName
     `,
   };
 
-  return transporter.sendMail(mailOptions);
+  return sgMail.send(msg);
 };
 
 const sendOrderEmail = async ({ customerName, phone, email, address, items, totalAmount }) => {
@@ -59,9 +53,9 @@ const sendOrderEmail = async ({ customerName, phone, email, address, items, tota
     </tr>
   `).join('');
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  const msg = {
     to: process.env.ADMIN_EMAIL,
+    from: process.env.EMAIL_USER,
     subject: `New Order Received - ₹${totalAmount} from ${customerName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f0fdf4;">
@@ -103,7 +97,7 @@ const sendOrderEmail = async ({ customerName, phone, email, address, items, tota
     `,
   };
 
-  return transporter.sendMail(mailOptions);
+  return sgMail.send(msg);
 };
 
-module.exports = { transporter, sendInquiryEmail, sendOrderEmail };
+module.exports = { sendInquiryEmail, sendOrderEmail };
