@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const { sendOrderEmail } = require('../config/nodemailer');
 
 const createOrder = async (req, res) => {
   try {
@@ -16,6 +17,12 @@ const createOrder = async (req, res) => {
       address,
       totalAmount,
     });
+
+    try {
+      await sendOrderEmail({ customerName, phone, email, address, items, totalAmount });
+    } catch (emailError) {
+      console.error('Order email sending failed:', emailError.message);
+    }
 
     res.status(201).json(order);
   } catch (error) {
